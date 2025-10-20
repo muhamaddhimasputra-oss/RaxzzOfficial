@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Digital Payment - RAX**</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* CSS DITEMPATKAN DI SINI */
+        :root {
+            --primary-color-gopay: #00A952;
+            --primary-color-dana: #1D549A;
+            --primary-color-qris: #6C5CE7;
+            --dark-bg: #1a1a1a;
+            --light-text: #f0f0f0;
+            --success-color: #28a745;
+        }
+
+        body {
+            /* GAMBAR BACKGROUND: IMG-20251014-WA0004.jpg */
+            background-image: url('IMG-20251014-WA0004.jpg'); 
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .payment-container {
+            background-color: rgba(0, 0, 0, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7);
+            padding: 30px;
+            max-width: 400px;
+            width: 100%;
+            color: var(--light-text);
+            backdrop-filter: blur(5px);
+            z-index: 10;
+            position: relative;
+        }
+
+        .payment-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .payment-header h1 {
+            font-size: 1.8em;
+            margin-bottom: 5px;
+            color: white;
+        }
+
+        .payment-header p {
+            font-size: 0.9em;
+            color: #bbb;
+        }
+
+        .payment-header i {
+            font-size: 3em;
+            color: var(--primary-color-gopay);
+            margin-bottom: 10px;
+        }
+
+        .payment-methods {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        /* Styling untuk Tombol */
+        .method-button {
+            background-color: var(--dark-bg);
+            color: var(--light-text);
+            border: none;
+            padding: 15px 20px;
+            border-radius: 10px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            text-decoration: none; 
+            position: relative;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        
+        .method-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.5);
+            background-color: #2b2b2b;
+        }
+
+        .method-button i:first-child {
+            font-size: 1.5em;
+            margin-right: 15px;
+            width: 30px;
+            text-align: center;
+        }
+
+        .gopay-btn i:first-child { color: var(--primary-color-gopay); }
+        .dana-btn i:first-child { color: var(--primary-color-dana); }
+        .qris-btn i:first-child { color: var(--primary-color-qris); }
+
+        .info {
+            flex-grow: 1;
+        }
+
+        .info .name {
+            display: block;
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .info .details {
+            display: block;
+            font-size: 0.8em;
+            color: #aaa;
+            margin-top: 2px;
+        }
+
+        .method-button i.fa-copy, .method-button i.fa-qrcode {
+            font-size: 0.8em;
+            color: #666;
+            margin-left: 10px;
+        }
+        
+        .qris-btn i.fa-chevron-right {
+             color: #666;
+             font-size: 0.8em;
+             margin-left: 10px;
+        }
+
+        .payment-footer {
+            text-align: center;
+            margin-top: 30px;
+            font-size: 0.75em;
+            color: #888;
+        }
+
+        /* Styling Notifikasi */
+        #notification {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--success-color);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            z-index: 1000;
+            white-space: nowrap;
+        }
+
+        #notification.show {
+            opacity: 1;
+        }
+        
+        /* MODAL QRIS */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 100; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.8);
+            backdrop-filter: blur(5px);
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+            max-width: 90%;
+            width: 300px;
+            text-align: center;
+        }
+        
+        .modal-content img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            margin: 10px auto;
+            border: 1px solid #ddd; /* Memberi sedikit batas pada gambar QRIS */
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .close-btn:hover,
+        .close-btn:focus {
+            color: #333;
+            text-decoration: none;
+        }
+
+        /* Responsiveness sederhana */
+        @media (max-width: 480px) {
+            .payment-container {
+                padding: 20px;
+                margin: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="payment-container">
+        <header class="payment-header">
+            <i class="fas fa-wallet"></i>
+            <h1>Pilih Metode Pembayaran Raxzz Store</h1>
+            <p>Klik tombol GoPay/DANA untuk salin No. Klik QRIS untuk Pindai.</p>
+        </header>
+
+        <main class="payment-methods">
+            
+            <button class="method-button gopay-btn copy-btn" data-copy-value="0895424274270" data-name="GoPay (DIMZUM)">
+                <i class="fas fa-mobile-alt"></i>
+                <div class="info">
+                    <span class="name">GoPay</span>
+                    <span class="details">DIMZUM (0895424274270) - KLIK UNTUK SALIN</span>
+                </div>
+                <i class="fas fa-copy"></i>
+            </button>
+
+            <button class="method-button dana-btn copy-btn" data-copy-value="0895424274270" data-name="DANA (RAC** SOD**)">
+                <i class="fas fa-money-bill-wave"></i>
+                <div class="info">
+                    <span class="name">DANA</span>
+                    <span class="details">RAC** SOD** (0895424274270) - KLIK UNTUK SALIN</span>
+                </div>
+                <i class="fas fa-copy"></i>
+            </button>
+
+            <button class="method-button qris-btn" id="openQrisModal">
+                <i class="fas fa-qrcode"></i>
+                <div class="info">
+                    <span class="name">QRIS (Semua E-Wallet)</span>
+                    <span class="details">KLIK UNTUK PINDAI QR CODE</span>
+                </div>
+                <i class="fas fa-chevron-right"></i>
+            </button>
+
+        </main>
+
+        <footer class="payment-footer">
+            <p>&copy; 2025 Digital Payment System | Project Tugas Sekolah</p>
+        </footer>
+    </div>
+    
+    <div id="notification"></div>
+    
+    <div id="qrisModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h2>QRIS Payment</h2>
+        <p>Silakan pindai kode ini dengan aplikasi E-Wallet Anda.</p>
+        <img src="https://files.catbox.moe/1sy70l.jpg" alt="QRIS Code Anda">
+        <p style="font-size: 0.8em; color: #555;">Pastikan nama merchant sudah benar.</p>
+      </div>
+    </div>
+
+    <script>
+        // Fungsi untuk menampilkan notifikasi
+        function showNotification(message) {
+            const notifElement = document.getElementById('notification');
+            notifElement.textContent = message;
+            notifElement.classList.add('show');
+            
+            setTimeout(() => {
+                notifElement.classList.remove('show');
+            }, 3000);
+        }
+
+        // 1. Logika untuk tombol GoPay dan DANA (Copy)
+        document.querySelectorAll('.copy-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const valueToCopy = this.getAttribute('data-copy-value');
+                const paymentName = this.getAttribute('data-name');
+                
+                if (navigator.clipboard) {
+                    navigator.clipboard.writeText(valueToCopy).then(() => {
+                        showNotification(`Nomor ${paymentName} berhasil disalin!`);
+                    }).catch(err => {
+                        console.error('Gagal menyalin:', err);
+                        showNotification('Gagal menyalin nomor. Silakan salin manual: ' + valueToCopy);
+                    });
+                } else {
+                    const tempInput = document.createElement('textarea');
+                    tempInput.value = valueToCopy;
+                    document.body.appendChild(tempInput);
+                    tempInput.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(tempInput);
+                    showNotification(`Nomor ${paymentName} berhasil disalin! (Fallback)`);
+                }
+            });
+        });
+
+        // 2. Logika untuk Modal QRIS
+        const modal = document.getElementById("qrisModal");
+        const btn = document.getElementById("openQrisModal");
+        const span = document.getElementsByClassName("close-btn")[0];
+
+        // Saat user klik tombol, buka modal
+        btn.onclick = function() {
+          modal.style.display = "flex";
+          showNotification(' QRIS Raxzz ditampilkan.');
+        }
+
+        // Saat user klik (x), tutup modal
+        span.onclick = function() {
+          modal.style.display = "none";
+        }
+
+        // Saat user klik di luar modal, tutup modal
+        window.onclick = function(event) {
+          if (event.target == modal) {
+            modal.style.display = "none";
+          }
+        }
+    </script>
+</body>
+</html>
